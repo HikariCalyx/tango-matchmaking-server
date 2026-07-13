@@ -15,6 +15,12 @@ pub struct Config {
     pub debug: bool,
     pub use_static_turn_credential: bool,
     pub log_level: String,
+    /// Broadcast server to HCT API
+    pub broadcast_server: bool,
+    pub server_name: String,
+    pub server_description: String,
+    pub server_country_code_alpha2: String,
+    pub endpoint_address: String,
 }
 
 impl Config {
@@ -40,6 +46,14 @@ impl Config {
                 .map(|v| v.to_lowercase() == "true")
                 .unwrap_or(false),
             log_level: env::var("LOG_LEVEL").unwrap_or_else(|_| "INFO".to_string()),
+            broadcast_server: env::var("BROADCAST_SERVER")
+                .map(|v| v.to_lowercase() == "true")
+                .unwrap_or(false),
+            server_name: env::var("SERVER_NAME").unwrap_or_default(),
+            server_description: env::var("SERVER_DESCRIPTION").unwrap_or_default(),
+            server_country_code_alpha2: env::var("SERVER_COUNTRY_CODE_ALPHA2")
+                .unwrap_or_default(),
+            endpoint_address: env::var("ENDPOINT_ADDRESS").unwrap_or_default(),
         }
     }
 }

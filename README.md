@@ -98,6 +98,7 @@ BROADCAST_SERVER=false
 SERVER_NAME='A new Trill Signaling Server'
 SERVER_DESCRIPTION='A new Signaling Server located at Hong Kong'
 SERVER_COUNTRY_CODE_ALPHA2=HK
+ENDPOINT_ADDRESS=wss://matchmaking.trill.example.com
 
 # Logging
 DEBUG=false

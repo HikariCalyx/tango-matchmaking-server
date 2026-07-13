@@ -1,3 +1,4 @@
+mod broadcast;
 mod config;
 mod handlers;
 mod hub;
@@ -46,6 +47,12 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize the matchmaking hub
     let hub = Arc::new(MatchmakingHub::new());
+
+    // Spawn the broadcast background task (runs every 10 min when enabled)
+    let broadcast_config = config.clone();
+    tokio::spawn(async move {
+        broadcast::broadcast_loop(broadcast_config).await;
+    });
 
     // Build router
     let app = Router::new()
