@@ -1,8 +1,8 @@
-# Rust Port of Tango Signaling Server - Summary
+# Rust Port of Trill Signaling Server - Summary
 
 ## Overview
 
-Successfully ported the Python Tango Signaling Server to Rust with full feature parity. The Rust implementation provides:
+Successfully ported the Python Trill Signaling Server to Rust with full feature parity. The Rust implementation provides:
 
 - **Performance**: 10-15x faster than Python implementation for concurrent connections
 - **Memory efficiency**: ~1-2MB per connection (vs ~10-20MB for Python)
@@ -12,7 +12,7 @@ Successfully ported the Python Tango Signaling Server to Rust with full feature 
 ## What Was Ported
 
 ### Core Functionality
-- ✅ WebSocket signaling protocol (tango.signaling protobuf)
+- ✅ WebSocket signaling protocol (trill.signaling protobuf)
 - ✅ Session matchmaking hub (in-process Durable Object equivalent)
 - ✅ ICE server provisioning (TURN/STUN)
 - ✅ Peer discovery and SDP exchange
@@ -161,8 +161,8 @@ SERVER_PORT=9000 ./target/release/trill-signaling-server
 ### Docker
 
 ```bash
-docker build -t tango-signaling:latest .
-docker run -p 8000:8000 tango-signaling:latest
+docker build -t trill-signaling:latest .
+docker run -p 8000:8000 trill-signaling:latest
 ```
 
 ### Systemd Service
@@ -183,7 +183,7 @@ curl http://localhost:8000/ok
 # Response: ok
 ```
 
-WebSocket testing requires a client that implements the tango.signaling protocol.
+WebSocket testing requires a client that implements the trill.signaling protocol.
 
 ## Migration Path
 

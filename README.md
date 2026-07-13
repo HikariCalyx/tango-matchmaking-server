@@ -3,12 +3,12 @@
 A high-performance WebSocket-based signaling server for WebRTC peer-to-peer communication, written in Rust. Handles session matchmaking and ICE server provisioning with support for Windows and Linux tier 1 targets.
 
 > We just learned that the [upstream has removed source code of Signaling Server](https://github.com/tangobattle/tango/commit/d72d409f33328aad648c4bcdbdb4ba018c195318), and this violates AGPL.
-> Therefore, the compatibility with Tango can no longer be guaranteed.
+> Therefore, the compatibility with upstream can no longer be guaranteed.
 
 ## Features
 
 - **Async WebSocket Server**: Built with Tokio and Axum for high concurrency
-- **Protobuf Protocol**: Compatible with the existing tango.signaling protocol
+- **Protobuf Protocol**: Compatible with the existing trill.signaling protocol
 - **Session Matchmaking**: In-process matchmaking hub for peer discovery
 - **ICE Server Support**: 
   - Custom TURN servers
@@ -92,6 +92,12 @@ SERVER_PORT=8000              # Listen port
 TURN_ADDR=turn.example.com
 TURN_USER=username
 TURN_CREDENTIAL=password
+
+# Broadcast Server to HCT API
+BROADCAST_SERVER=false
+SERVER_NAME='A new Trill Signaling Server'
+SERVER_DESCRIPTION='A new Signaling Server located at Hong Kong'
+SERVER_COUNTRY_CODE_ALPHA2=HK
 
 # Logging
 DEBUG=false

@@ -1,4 +1,4 @@
-# Rust Tango Signaling Server - Documentation Index
+# Rust Trill Signaling Server - Documentation Index
 
 ## Quick Navigation
 

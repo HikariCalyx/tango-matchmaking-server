@@ -1,4 +1,4 @@
-# Quick Start - Rust Tango Signaling Server
+# Quick Start - Rust Trill Signaling Server
 
 Get the server running in 5 minutes.
 
@@ -83,36 +83,36 @@ curl http://localhost:8000/health
 
 ### 1. Build Image
 ```bash
-docker build -t tango-signaling:latest .
+docker build -t trill-signaling:latest .
 ```
 
 ### 2. Run Container
 ```bash
 # Simple
-docker run -p 8000:8000 tango-signaling:latest
+docker run -p 8000:8000 trill-signaling:latest
 
 # With environment variables
 docker run -p 8000:8000 \
   -e SERVER_PORT=8000 \
   -e RUST_LOG=info \
-  tango-signaling:latest
+  trill-signaling:latest
 
 # With Cloudflare TURN
 docker run -p 8000:8000 \
   -e CLOUDFLARE_TURN_SERVICE_ID=your-id \
   -e CLOUDFLARE_TURN_SERVICE_API_TOKEN=your-token \
-  tango-signaling:latest
+  trill-signaling:latest
 
 # In background
 docker run -d -p 8000:8000 \
-  --name tango-signaling \
-  tango-signaling:latest
+  --name trill-signaling \
+  trill-signaling:latest
 
 # View logs
-docker logs tango-signaling
+docker logs trill-signaling
 
 # Stop
-docker stop tango-signaling
+docker stop trill-signaling
 ```
 
 ### 3. Test
@@ -124,20 +124,20 @@ curl http://localhost:8000/health
 
 ### 1. Create Service File
 ```bash
-sudo nano /etc/systemd/system/tango-signaling.service
+sudo nano /etc/systemd/system/trill-signaling.service
 ```
 
 ### 2. Add Content
 ```ini
 [Unit]
-Description=Tango Signaling Server
+Description=Trill Signaling Server
 After=network.target
 
 [Service]
 Type=simple
-User=tango
-WorkingDirectory=/opt/tango-signaling
-ExecStart=/opt/tango-signaling/tango-signaling-server
+User=trill
+WorkingDirectory=/opt/trill-signaling
+ExecStart=/opt/trill-signaling/trill-signaling-server
 Restart=on-failure
 RestartSec=5
 
@@ -152,14 +152,14 @@ WantedBy=multi-user.target
 ### 3. Enable and Start
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable tango-signaling
-sudo systemctl start tango-signaling
+sudo systemctl enable trill-signaling
+sudo systemctl start trill-signaling
 
 # Check status
-sudo systemctl status tango-signaling
+sudo systemctl status trill-signaling
 
 # View logs
-sudo journalctl -u tango-signaling -f
+sudo journalctl -u trill-signaling -f
 ```
 
 ## Environment Variables
@@ -251,7 +251,7 @@ curl http://localhost:8000/unknown
 # Linux: lsof -i :8000
 
 # Use different port
-SERVER_PORT=8001 ./tango-signaling-server
+SERVER_PORT=8001 ./trill-signaling-server
 ```
 
 ### Can't Connect

@@ -1,4 +1,4 @@
-# Building Tango Signaling Server for Windows and Linux
+# Building Trill Signaling Server for Windows and Linux
 
 This guide covers building for Tier 1 Rust targets: `x86_64-pc-windows-msvc` and `x86_64-unknown-linux-gnu`.
 
@@ -137,7 +137,7 @@ cargo build --release --target x86_64-pc-windows-gnu
 @echo off
 setlocal enabledelayedexpansion
 
-echo Building Tango Signaling Server for Windows...
+echo Building Trill Signaling Server for Windows...
 rustup default stable-msvc
 cargo build --release
 
@@ -157,7 +157,7 @@ if %ERRORLEVEL% EQU 0 (
 #!/bin/bash
 set -e
 
-echo "Building Tango Signaling Server for Linux..."
+echo "Building Trill Signaling Server for Linux..."
 
 cargo build --release
 
@@ -180,11 +180,11 @@ Build for both Windows and Linux using Docker buildx:
 # Build and push to registry
 docker buildx build \
   --platform linux/amd64 \
-  -t myregistry/tango-signaling:latest \
+  -t myregistry/trill-signaling:latest \
   -f Dockerfile .
 
 # Build locally
-docker build -t tango-signaling:latest .
+docker build -t trill-signaling:latest .
 ```
 
 ## Verification
@@ -321,8 +321,8 @@ jobs:
       - run: cargo build --release --manifest-path rust/Cargo.toml
       - uses: actions/upload-artifact@v3
         with:
-          name: tango-signaling-server-windows
-          path: rust/target/release/tango-signaling-server.exe
+          name: trill-signaling-server-windows
+          path: rust/target/release/trill-signaling-server.exe
 
   build-linux:
     runs-on: ubuntu-latest
@@ -335,8 +335,8 @@ jobs:
       - run: cargo build --release --manifest-path rust/Cargo.toml
       - uses: actions/upload-artifact@v3
         with:
-          name: tango-signaling-server-linux
-          path: rust/target/release/tango-signaling-server
+          name: trill-signaling-server-linux
+          path: rust/target/release/trill-signaling-server
 ```
 
 ## See Also

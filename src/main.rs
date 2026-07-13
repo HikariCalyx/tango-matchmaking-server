@@ -38,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
     let config = Arc::new(Config::from_env());
 
-    info!("Starting Tango Signaling Server");
+    info!("Starting Trill Signaling Server");
     info!(
         "Listening on {}:{}",
         config.server_host, config.server_port
@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
         .await
         .expect("Server error");
 
-    info!("Tango Signaling Server shut down");
+    info!("Trill Signaling Server shut down");
     Ok(())
 }
 

@@ -1,4 +1,4 @@
-// Auto-generated protobuf code for tango.signaling
+// Auto-generated protobuf code for trill.signaling
 // Generated from signaling.proto
 
 use prost::Message;
