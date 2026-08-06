@@ -1,7 +1,7 @@
 // Auto-generated protobuf code for trill.signaling
 // Generated from signaling.proto
 
-use prost::Message;
+// use prost::Message; // unused
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Packet {
@@ -10,7 +10,7 @@ pub struct Packet {
 }
 
 pub mod packet {
-    use prost::Message;
+    // use prost::Message; // unused
 
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Which {
@@ -77,7 +77,7 @@ pub mod packet {
     }
 
     pub mod abort {
-        use prost::Enumeration;
+        // use prost::Enumeration; // unused
 
         #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
         #[repr(i32)]
@@ -138,15 +138,17 @@ pub mod packet {
 }
 
 impl Packet {
-    pub fn is_valid_from_client(&self) -> bool {
-        matches!(
-            self.which.as_ref(),
-            Some(packet::Which::Start(_))
-                | Some(packet::Which::Answer(_))
-                | Some(packet::Which::Ping(_))
-                | Some(packet::Which::IceCandidate(_))
-        )
-    }
+    // Currently unused — the client-facing validation goes through
+    // `is_server_only`. Kept for reference/future use.
+    // pub fn is_valid_from_client(&self) -> bool {
+    //     matches!(
+    //         self.which.as_ref(),
+    //         Some(packet::Which::Start(_))
+    //             | Some(packet::Which::Answer(_))
+    //             | Some(packet::Which::Ping(_))
+    //             | Some(packet::Which::IceCandidate(_))
+    //     )
+    // }
 
     pub fn is_server_only(&self) -> bool {
         matches!(

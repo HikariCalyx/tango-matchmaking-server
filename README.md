@@ -140,8 +140,24 @@ The server uses the tango.signaling protobuf protocol. Messages include:
 - **Start**: Client → Server, initiates offer with SDP
 - **Offer**: Server → Client, relays offer SDP
 - **Answer**: Client → Server, provides answer SDP
+- **IceCandidate**: Client ↔ Server, a single trickled ICE candidate relayed to the paired peer
 - **Ping**: Client ↔ Server, keep-alive
 - **Abort**: Server → Client, connection abort with reason
+
+### Trickle ICE
+
+Recent clients disable auto-negotiation and send their offer/answer *before* ICE
+gathering finishes, then trickle candidates separately as `IceCandidate` packets.
+The server pairs the two peers in a session and relays each candidate to the
+other. Neither socket is closed after the answer is relayed — both peers keep
+trickling until their connection comes up, then each closes its own socket.
+
+### Protocol version
+
+Clients pass their signaling protocol version on the WebSocket query string
+(`protocol_version`, hex-encoded). The server can be configured to reject clients
+outside a supported range via `MIN_PROTOCOL_VERSION` / `MAX_PROTOCOL_VERSION`
+(see `.env.example`); by default it matchmakes for any version.
 
 See `proto/signaling.proto` for full specification.
 

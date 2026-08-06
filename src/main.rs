@@ -10,14 +10,14 @@ mod ice;
 use axum::{
     extract::{ws::WebSocketUpgrade, Query},
     http::StatusCode,
-    response::IntoResponse,
+    // response::IntoResponse, // unused
     routing::get,
     Router,
 };
-use dashmap::DashMap;
+// use dashmap::DashMap; // unused
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tracing::{error, info};
+use tracing::info;
 
 use crate::config::Config;
 use crate::hub::MatchmakingHub;
