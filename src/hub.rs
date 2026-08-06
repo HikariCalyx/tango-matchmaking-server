@@ -4,12 +4,33 @@ use std::sync::Arc;
 use tokio::sync::{RwLock, mpsc};
 use tracing::debug;
 
-pub type WsMessageSender = mpsc::UnboundedSender<Vec<u8>>;
+/// A message queued for delivery to a connection's WebSocket. Either a binary
+/// protobuf packet, or a request to close the socket (used to replicate the
+/// legacy server's "close both sockets once the answer is relayed" behavior).
+pub enum OutgoingMessage {
+    Binary(Vec<u8>),
+    Close,
+}
+
+pub type WsMessageSender = mpsc::UnboundedSender<OutgoingMessage>;
 
 pub struct Connection {
     pub id: uuid::Uuid,
     pub tx: WsMessageSender,
     pub attachment: Arc<RwLock<SessionAttachment>>,
+}
+
+impl Connection {
+    /// Queue a binary packet for delivery. Ordered behind anything already
+    /// queued, so a packet enqueued before a close still goes out first.
+    pub fn send_binary(&self, data: Vec<u8>) -> Result<(), mpsc::error::SendError<OutgoingMessage>> {
+        self.tx.send(OutgoingMessage::Binary(data))
+    }
+
+    /// Ask the send task to flush anything queued, then close the socket.
+    pub fn close(&self) {
+        let _ = self.tx.send(OutgoingMessage::Close);
+    }
 }
 
 pub struct MatchmakingHub {

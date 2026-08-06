@@ -1,6 +1,6 @@
 use axum::extract::ws::{WebSocket, Message as WsMessage};
 use crate::handlers::messages::{handle_answer, handle_ice_candidate, handle_start};
-use crate::hub::{Connection, MatchmakingHub};
+use crate::hub::{Connection, MatchmakingHub, OutgoingMessage};
 use crate::ice::get_ice_servers;
 use crate::pb::{Packet, packet};
 use crate::models::SessionAttachment;
@@ -72,9 +72,20 @@ pub async fn handle(
 
     // Spawn a task to forward messages from the channel to the WebSocket sender
     let send_task = tokio::spawn(async move {
-        while let Some(data) = rx.recv().await {
-            if sender.send(WsMessage::Binary(data)).await.is_err() {
-                break;
+        while let Some(msg) = rx.recv().await {
+            match msg {
+                OutgoingMessage::Binary(data) => {
+                    if sender.send(WsMessage::Binary(data)).await.is_err() {
+                        break;
+                    }
+                }
+                OutgoingMessage::Close => {
+                    // Flush a polite close frame, then stop forwarding. This is
+                    // how the server closes a peer's socket after the SDP
+                    // exchange for legacy (non-trickle) clients.
+                    let _ = sender.close().await;
+                    break;
+                }
             }
         }
     });
@@ -182,7 +193,7 @@ pub async fn send_hello_packet(
 
     let encoded = packet.encode_to_vec();
     debug!("Sending hello packet with {} ICE servers ({} bytes)", ice_servers.len(), encoded.len());
-    connection.tx.send(encoded)?;
+    connection.send_binary(encoded)?;
 
     Ok(())
 }
@@ -198,7 +209,7 @@ pub async fn send_offer_packet(
 
     let encoded = packet.encode_to_vec();
     debug!("Sending offer packet ({} bytes)", encoded.len());
-    connection.tx.send(encoded)?;
+    connection.send_binary(encoded)?;
 
     Ok(())
 }
@@ -214,7 +225,7 @@ pub async fn send_answer_packet(
 
     let encoded = packet.encode_to_vec();
     debug!("Sending answer packet ({} bytes)", encoded.len());
-    connection.tx.send(encoded)?;
+    connection.send_binary(encoded)?;
 
     Ok(())
 }
@@ -225,7 +236,7 @@ pub async fn send_ping_packet(connection: &Arc<Connection>) -> anyhow::Result<()
 
     let encoded = packet.encode_to_vec();
     debug!("Sending ping packet ({} bytes)", encoded.len());
-    connection.tx.send(encoded)?;
+    connection.send_binary(encoded)?;
 
     Ok(())
 }
@@ -241,7 +252,7 @@ pub async fn send_ice_candidate_packet(
 
     let encoded = packet.encode_to_vec();
     debug!("Sending ICE candidate packet ({} bytes)", encoded.len());
-    connection.tx.send(encoded)?;
+    connection.send_binary(encoded)?;
 
     Ok(())
 }
@@ -255,7 +266,7 @@ pub async fn send_abort_packet(
 
     let encoded = packet.encode_to_vec();
     debug!("Sending abort packet ({} bytes) with reason {}", encoded.len(), reason);
-    connection.tx.send(encoded)?;
+    connection.send_binary(encoded)?;
 
     Ok(())
 }

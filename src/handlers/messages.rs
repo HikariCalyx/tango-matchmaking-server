@@ -114,11 +114,34 @@ pub async fn handle_answer(
         warn!("[{}] Failed to send answer packet to offerer: {}", session_id, e);
     }
 
-    // With trickle ICE the exchange isn't finished here: both peers keep the
-    // socket open and trickle candidates until their connection comes up, then
-    // each closes its own socket. The server no longer closes them or sends a
-    // completion ping.
-    debug!("[{}] Answer relayed, awaiting ICE candidates", session_id);
+    // Close-vs-keep-open, decided per peer:
+    //
+    // * Legacy (pre-trickle) clients gather all their ICE candidates before
+    //   sending the SDP, so once the answer is relayed there is nothing left to
+    //   exchange. They were built against a server that closes their socket at
+    //   this point (and hang / fail their peer connection if it lingers), so we
+    //   close it — matching the original signaling server.
+    // * Trickle-ICE clients send their SDP early and then stream candidates over
+    //   this socket, so it must stay open until they close it themselves once
+    //   connected.
+    //
+    // A client is trickle-capable iff it advertised its protocol version on the
+    // query string (only trickle-era clients do; older ones use an HTTP header
+    // the server doesn't read, so their `protocol_version` is `None`).
+    let offerer_is_legacy = offerer_conn.attachment.read().await.protocol_version.is_none();
+    let answerer_is_legacy = connection.attachment.read().await.protocol_version.is_none();
+
+    if offerer_is_legacy {
+        offerer_conn.close();
+    }
+    if answerer_is_legacy {
+        connection.close();
+    }
+
+    debug!(
+        "[{}] Answer relayed (offerer_legacy={}, answerer_legacy={})",
+        session_id, offerer_is_legacy, answerer_is_legacy
+    );
 
     Ok(())
 }
