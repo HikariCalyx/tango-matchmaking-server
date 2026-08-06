@@ -21,6 +21,14 @@ pub struct Config {
     pub server_description: String,
     pub server_country_code_alpha2: String,
     pub endpoint_address: String,
+    /// Lowest signaling protocol version this server will matchmake for.
+    /// Clients advertising an older version are rejected with
+    /// `REASON_PROTOCOL_VERSION_TOO_OLD`. `None` disables the lower bound.
+    pub min_protocol_version: Option<u32>,
+    /// Highest signaling protocol version this server will matchmake for.
+    /// Clients advertising a newer version are rejected with
+    /// `REASON_PROTOCOL_VERSION_TOO_NEW`. `None` disables the upper bound.
+    pub max_protocol_version: Option<u32>,
 }
 
 impl Config {
@@ -54,6 +62,49 @@ impl Config {
             server_country_code_alpha2: env::var("SERVER_COUNTRY_CODE_ALPHA2")
                 .unwrap_or_default(),
             endpoint_address: env::var("ENDPOINT_ADDRESS").unwrap_or_default(),
+            min_protocol_version: env::var("MIN_PROTOCOL_VERSION")
+                .ok()
+                .and_then(|v| parse_protocol_version(&v)),
+            max_protocol_version: env::var("MAX_PROTOCOL_VERSION")
+                .ok()
+                .and_then(|v| parse_protocol_version(&v)),
         }
     }
+
+    /// Decide whether a client advertising `protocol_version` should be turned
+    /// away, and with which [`Reason`](crate::pb::packet::abort::Reason). Returns
+    /// `None` when the client is acceptable (including when no bounds are
+    /// configured, or when the client advertised no version at all).
+    pub fn protocol_version_abort_reason(
+        &self,
+        protocol_version: Option<u32>,
+    ) -> Option<crate::pb::packet::abort::Reason> {
+        use crate::pb::packet::abort::Reason;
+        let version = protocol_version?;
+        if let Some(min) = self.min_protocol_version {
+            if version < min {
+                return Some(Reason::ProtocolVersionTooOld);
+            }
+        }
+        if let Some(max) = self.max_protocol_version {
+            if version > max {
+                return Some(Reason::ProtocolVersionTooNew);
+            }
+        }
+        None
+    }
+}
+
+/// Parse a configured protocol version. Accepts either a hex value (with or
+/// without a `0x` prefix, matching how the client encodes it on the query
+/// string, e.g. `56`) or a plain decimal value.
+fn parse_protocol_version(raw: &str) -> Option<u32> {
+    let trimmed = raw.trim();
+    if let Some(hex) = trimmed.strip_prefix("0x").or_else(|| trimmed.strip_prefix("0X")) {
+        return u32::from_str_radix(hex, 16).ok();
+    }
+    // Bare value: try hex first (the client's on-wire encoding), then decimal.
+    u32::from_str_radix(trimmed, 16)
+        .ok()
+        .or_else(|| trimmed.parse::<u32>().ok())
 }

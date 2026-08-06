@@ -5,7 +5,7 @@ use prost::Message;
 
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Packet {
-    #[prost(oneof = "packet::Which", tags = "4, 1, 2, 3, 5, 6")]
+    #[prost(oneof = "packet::Which", tags = "4, 1, 2, 3, 5, 6, 7")]
     pub which: ::core::option::Option<packet::Which>,
 }
 
@@ -26,6 +26,8 @@ pub mod packet {
         Abort(super::Abort),
         #[prost(message, tag = "6")]
         Ping(super::Ping),
+        #[prost(message, tag = "7")]
+        IceCandidate(super::IceCandidate),
     }
 
     #[derive(Clone, PartialEq, ::prost::Message)]
@@ -127,6 +129,12 @@ pub mod packet {
 
     #[derive(Clone, PartialEq, ::prost::Message)]
     pub struct Ping {}
+
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct IceCandidate {
+        #[prost(string, tag = "1")]
+        pub candidate: ::prost::alloc::string::String,
+    }
 }
 
 impl Packet {
@@ -136,6 +144,7 @@ impl Packet {
             Some(packet::Which::Start(_))
                 | Some(packet::Which::Answer(_))
                 | Some(packet::Which::Ping(_))
+                | Some(packet::Which::IceCandidate(_))
         )
     }
 
@@ -149,4 +158,4 @@ impl Packet {
     }
 }
 
-pub use packet::{Abort, Answer, Hello, Offer, Ping, Start};
+pub use packet::{Abort, Answer, Hello, IceCandidate, Offer, Ping, Start};

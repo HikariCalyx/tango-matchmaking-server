@@ -67,6 +67,31 @@ impl MatchmakingHub {
         None
     }
 
+    /// Look up a specific connection within a session by its id.
+    pub async fn find_connection_by_id(
+        &self,
+        session_id: &str,
+        connection_id: uuid::Uuid,
+    ) -> Option<Arc<Connection>> {
+        self.connections
+            .get(session_id)
+            .and_then(|conns| conns.iter().find(|c| c.id == connection_id).cloned())
+    }
+
+    /// Find the other connection in a session — the one that isn't `exclude_id`.
+    /// Used as a fallback for routing trickled ICE candidates when an explicit
+    /// peer pairing hasn't been recorded yet. A session only ever holds the two
+    /// peers sharing a link code, so "the other one" is unambiguous.
+    pub async fn find_other_connection(
+        &self,
+        session_id: &str,
+        exclude_id: uuid::Uuid,
+    ) -> Option<Arc<Connection>> {
+        self.connections
+            .get(session_id)
+            .and_then(|conns| conns.iter().find(|c| c.id != exclude_id).cloned())
+    }
+
     pub async fn get_all_connections(&self, session_id: &str) -> Vec<Arc<Connection>> {
         self.connections
             .get(session_id)

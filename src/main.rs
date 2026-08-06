@@ -99,6 +99,10 @@ async fn not_found() -> (StatusCode, String) {
 #[derive(serde::Deserialize)]
 pub struct WebSocketQuery {
     session_id: String,
+    /// Signaling protocol version, hex-encoded by the client
+    /// (e.g. `protocol_version=56`). Optional for backwards compatibility with
+    /// older clients that don't advertise it.
+    protocol_version: Option<String>,
 }
 
 async fn websocket_handler(
@@ -107,9 +111,14 @@ async fn websocket_handler(
     axum::extract::State((hub, config)): axum::extract::State<(SharedHub, SharedConfig)>,
 ) -> impl axum::response::IntoResponse {
     let session_id = params.session_id;
+    // The client encodes the protocol version as hex on the query string.
+    let protocol_version = params
+        .protocol_version
+        .as_deref()
+        .and_then(|v| u32::from_str_radix(v.trim_start_matches("0x").trim_start_matches("0X"), 16).ok());
     let hub_clone = Arc::clone(&hub);
     let config_clone = Arc::clone(&config);
-    ws.on_upgrade(move |socket| async {
-        handlers::websocket::handle(socket, session_id, hub_clone, config_clone).await
+    ws.on_upgrade(move |socket| async move {
+        handlers::websocket::handle(socket, session_id, protocol_version, hub_clone, config_clone).await
     })
 }

@@ -1,5 +1,5 @@
 use axum::extract::ws::{WebSocket, Message as WsMessage};
-use crate::handlers::messages::{handle_answer, handle_start};
+use crate::handlers::messages::{handle_answer, handle_ice_candidate, handle_start};
 use crate::hub::{Connection, MatchmakingHub};
 use crate::ice::get_ice_servers;
 use crate::pb::{Packet, packet};
@@ -13,21 +13,45 @@ use tracing::{info, warn, debug};
 pub async fn handle(
     ws: WebSocket,
     session_id: String,
+    protocol_version: Option<u32>,
     hub: Arc<MatchmakingHub>,
     config: Arc<crate::config::Config>,
 ) {
     // Split the WebSocket into sender and receiver
     let (mut sender, mut receiver) = ws.split();
 
+    // Reject clients whose signaling protocol version falls outside the range
+    // this server is configured to matchmake for. The client reads this Abort
+    // in place of the Hello and surfaces "update Tango" / "server is out of
+    // date" accordingly.
+    if let Some(reason) = config.protocol_version_abort_reason(protocol_version) {
+        warn!(
+            "[{}] Rejecting client (protocol_version={:?}): {}",
+            session_id,
+            protocol_version,
+            reason.as_str_name()
+        );
+        let mut packet = Packet::default();
+        packet.which = Some(packet::Which::Abort(crate::pb::Abort {
+            reason: reason as i32,
+        }));
+        let _ = sender.send(WsMessage::Binary(packet.encode_to_vec())).await;
+        let _ = sender.close().await;
+        return;
+    }
+
     // Create a message channel for sending data to this connection
     let (tx, mut rx) = mpsc::unbounded_channel();
 
     let connection_id = uuid::Uuid::new_v4();
-    
+
+    let mut attachment = SessionAttachment::new(session_id.clone());
+    attachment.protocol_version = protocol_version;
+
     let connection = Arc::new(Connection {
         id: connection_id,
         tx: tx.clone(),
-        attachment: Arc::new(RwLock::new(SessionAttachment::new(session_id.clone()))),
+        attachment: Arc::new(RwLock::new(attachment)),
     });
 
     info!("Client connected to session {}", session_id);
@@ -126,6 +150,9 @@ async fn handle_packet(
         Some(packet::Which::Ping(_)) => {
             send_ping_packet(connection).await?;
         }
+        Some(packet::Which::IceCandidate(ice_candidate)) => {
+            handle_ice_candidate(connection, hub, session_id, ice_candidate).await?;
+        }
         _ => {
             debug!("[{}] Unknown or unhandled packet type, ignoring", session_id);
         }
@@ -198,6 +225,22 @@ pub async fn send_ping_packet(connection: &Arc<Connection>) -> anyhow::Result<()
 
     let encoded = packet.encode_to_vec();
     debug!("Sending ping packet ({} bytes)", encoded.len());
+    connection.tx.send(encoded)?;
+
+    Ok(())
+}
+
+pub async fn send_ice_candidate_packet(
+    connection: &Arc<Connection>,
+    candidate: &str,
+) -> anyhow::Result<()> {
+    let mut packet = Packet::default();
+    packet.which = Some(packet::Which::IceCandidate(crate::pb::IceCandidate {
+        candidate: candidate.to_string(),
+    }));
+
+    let encoded = packet.encode_to_vec();
+    debug!("Sending ICE candidate packet ({} bytes)", encoded.len());
     connection.tx.send(encoded)?;
 
     Ok(())

@@ -1,6 +1,6 @@
 [package]
 name = "trill-signaling-server"
-version = "5.0.5-prerelease1"
+version = "5.1.0-260806-1918"
 edition = "2021"
 authors = ["Hikari Calyx Tech"]
 description = "Rust implementation of the Trill signaling server for WebRTC"

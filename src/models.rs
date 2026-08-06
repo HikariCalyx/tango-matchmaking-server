@@ -15,6 +15,11 @@ pub struct SessionAttachment {
     pub session_id: String,
     pub offer_sdp: Option<String>,
     pub connection_id: Option<String>, // hex-encoded
+    /// The connection this one is paired with once the SDP exchange has begun.
+    /// Used to route trickled ICE candidates to the correct peer.
+    pub peer_id: Option<uuid::Uuid>,
+    /// Signaling protocol version advertised by the client on the query string.
+    pub protocol_version: Option<u32>,
 }
 
 impl SessionAttachment {
@@ -23,6 +28,8 @@ impl SessionAttachment {
             session_id,
             offer_sdp: None,
             connection_id: None,
+            peer_id: None,
+            protocol_version: None,
         }
     }
 }

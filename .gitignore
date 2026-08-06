@@ -1,7 +1,6 @@
 # Rust
 /target/
 **/*.rs.bk
-Cargo.lock
 
 # IDE
 .vscode/
@@ -17,3 +16,5 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+reference/
