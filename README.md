@@ -47,6 +47,10 @@ The compiled binary will be at:
 - **Linux**: `target/release/trill-signaling-server`
 
 ## Running
+To deploy it on VPS, simply run this command:
+```
+curl -LO https://raw.githubusercontent.com/HikariCalyx/trill-matchmaking-server/main/deploy.sh | sudo bash
+```
 
 ### Local Development
 
